@@ -11,7 +11,7 @@ In virtualenv with python 3.6:
 
 `pip install -r requirements.txt`
 
-In an env file `.streets` put your Google API key like so `export API_KEY=<your-secret-here>`. Then run `source .streets`.
+In an env file `.streets` put your Google API key like so `export GOOGLE_API_KEY=<your-secret-here>`. Then run `source .streets`.
 
 ## Run
 
@@ -32,7 +32,7 @@ In an env file `.streets` put your Google API key like so `export API_KEY=<your-
 
 3. Run it
 
-   `python streets.py`
+   `python main.py`
 
    This will save a the results of your run in `matrix.csv` to save repeat API calls.
 
