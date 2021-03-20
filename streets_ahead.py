@@ -1,23 +1,24 @@
 import csv
 import os
 import googlemaps
-from datetime import datetime
-from utils import mean, weighted_mean
+from collections import defaultdict
+from utils import mean, weighted_mean, next_monday
 from walkscore import WalkScoreClient
 
 
-MONDAY_9_AM = datetime(2018, 6, 18, 9)
+MONDAY_9_AM = next_monday()
 EXTRA_COLUMNS = ["Walk", "Transit", "Average", "Wt. Average"]
 
 
 class Location:
-    def __init__(self, address, name=None, comment=None, weight=None, lat=None, lon=None):
+    def __init__(self, address, name=None, comment=None, weight=None, mode=None, lat=None, lon=None):
         self.address = address
         self.name = name or address
 
         # Destination fields
         self.comment = comment
         self.weight = weight
+        self.mode = mode or "transit"
 
         # Origin fields
         self.lat = lat
@@ -51,6 +52,12 @@ class StreetsAheadService:
             for row in self.matrix:
                 writer.writerow(row)
 
+    def _group_by_mode(self, destinations):
+        by_mode = defaultdict(list)
+        for destination in destinations:
+            by_mode[destination.mode].append(destination.address)
+        return by_mode
+
     def geocode(self, address):
         result = self._gclient.geocode(address)[0]["geometry"]["location"]
         lat, lon = result["lat"], result["lng"]
@@ -68,27 +75,40 @@ class StreetsAheadService:
         matrix_destinations = set(self.matrix[0][1:]) - set(["Apartment"] + EXTRA_COLUMNS)
         return matrix_origins != set(origins) or matrix_destinations != set(destinations)
 
+    def _distance_matrix_by_mode(self, origins, destinations):
+        origins_to_times = defaultdict(lambda: defaultdict(int))
+        address_to_name = {d.address: d.name for d in destinations}
+        by_mode = self._group_by_mode(destinations)
+        for mode, destination_addresses in by_mode.items():
+
+            print(f"Calculating distance matrix for mode={mode}...")
+            print(f"Origins: {origins}")
+            print(f"Destinations: {destination_addresses}\n")
+
+            response = self._gclient.distance_matrix(units="imperial",
+                                                     mode=mode,
+                                                     departure_time=MONDAY_9_AM,
+                                                     origins=origins,
+                                                     destinations=destination_addresses)
+            if response["status"] != "OK":
+                raise Exception("Failed to caclulate w/ status code: {}".format(response["status"]))
+
+            for i, row in enumerate(response["rows"]):
+                for j, col in enumerate(row["elements"]):
+                    destination = address_to_name[destination_addresses[j]]
+                    origins_to_times[origins[i]][destination] = int(col["duration"]["value"] / 60)
+        return origins_to_times
+
     def distance_matrix(self, origins, destinations):
         """
         Hits and parses the results from Google Distance Matrix API.
         Does not calculate the values in EXTRA_COLUMNS.
         """
-        destinations_list = [destination.name for destination in destinations]
-        print("Calculating distance matrix...")
-        print("Origins:", ','.join(origins))
-        print("Destinations:", ','.join(destinations_list))
-        response = self._gclient.distance_matrix(units="imperial",
-                                                 mode="transit",
-                                                 departure_time=MONDAY_9_AM,
-                                                 origins=origins,
-                                                 destinations=[destination.address for destination in destinations])
-        if response["status"] != "OK":
-            raise Exception("Failed to caclulate w/ status code: {}".format(response["status"]))
-
-        matrix = [["Apartment"] + destinations_list]
-        for i, row in enumerate(response["rows"]):
-            minutes = [int(col["duration"]["value"] / 60) for col in row["elements"]]
-            matrix.append([origins[i]] + minutes)
+        destination_names = [destination.name for destination in destinations]
+        matrix = [["Apartment"] + destination_names]
+        origins_to_times = self._distance_matrix_by_mode(origins, destinations)
+        for origin, dest_times in origins_to_times.items():
+            matrix.append([origin] + [dest_times[dname] for dname in destination_names])
         return matrix
 
     def scores(self, address):
@@ -96,10 +116,10 @@ class StreetsAheadService:
         data = self._walk_client.get(location)
         return [data["walk"]["score"] or "NA", data["transit"]["score"] or "NA"]
 
-    def summary(self, origins, destinations):
-        print("Generating summary...")
+    def summary(self, origins, destinations, force=False):
+        print(f"Generating summary for {MONDAY_9_AM}...")
         origins = [origin.address for origin in origins]
-        if self.is_dirty(origins, [destination.name for destination in destinations]):
+        if force or self.is_dirty(origins, [destination.name for destination in destinations]):
             self.matrix = self.distance_matrix(origins, destinations)
 
         # Extend the Google Distance matrix with our own calculated columns EXTRA_COLUMNS.

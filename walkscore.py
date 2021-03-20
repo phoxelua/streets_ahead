@@ -46,5 +46,5 @@ class WalkScoreClient:
                     "description": body["description"]
                 },
                 "transit": body["transit"],
-                "bike": body["bike"],
+                "bike": body.get("bike"),
             }

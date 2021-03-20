@@ -23,6 +23,7 @@ In an env file `.streets` put your Google API key like so `export GOOGLE_API_KEY
     2. Address or distinct enough name that you would type into Google Maps search
     3. Comment (not used yet but good for notes)
     4. Weight (i.e.- # of days out of 30 you would go to this hotspot/area)
+    5. Mode of transit (Google API, driving, walking, bicycling, transit, DEFAULT: transit)
     
     For example,
 
@@ -41,6 +42,7 @@ In an env file `.streets` put your Google API key like so `export GOOGLE_API_KEY
 
 The following actions will cause the executable to refresh and recall the APIs:
 
+- Passing --force / -f 
 - Add/delete/change a row in `origins.txt`
 - Add/delete a row or change the any first column value in `destinations.csv`
 - Add/delete/change a row in `matrix.csv`
