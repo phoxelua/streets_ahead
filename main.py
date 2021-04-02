@@ -13,6 +13,9 @@ def load_destinations():
     with open("destinations.csv") as f:
         reader = csv.reader(f)
         for row in reader:
+            # Support empty lines and comments for easier readability of csv
+            if not row or row[0].startswith("#"):
+                continue
             destinations.append(Location(name=row[0], address=row[1], comment=row[2], weight=float(row[3]), mode=row[4]))
     return destinations
 

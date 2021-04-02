@@ -1,7 +1,23 @@
+# Work
 Pinterest,"505 Brannan St, San Francisco, CA 94107",Work,10,
 Rapt,"RAPT Therapeutics, Inc., 561 Eccles Ave, South San Francisco, CA 94080",Work,10,driving
-Temple,"540 Howard St 1st floor, San Francisco, CA 94105",Clubs,1,
-Polk St,"1351 Polk St, San Francisco, CA 94109",Clubs,1,
-CrunchYB,"350 3rd St, San Francisco, CA 94107",Gym,4,
+
+#Gym
+CrunchYB,"350 3rd St, San Francisco, CA 94107",Gym,6,
 Boxing,"2576 3rd St, San Francisco, CA 94107",Gym,3,
+
+# Degen
+Temple,"540 Howard St 1st floor, San Francisco, CA 94105",Clubs,2,
+Polk St,"1351 Polk St, San Francisco, CA 94109",Clubs,2,
+
+# Food
 IPOT,"1420 Irving St, San Francisco, CA 94122",Sunset,1,driving
+Chinatown,"1029 Grant Ave, San Francisco, CA 94133",Golden Gate Bakery,2,
+Powell,"Market St & Powell St, San Francisco, CA 94102",Powell,3,
+Dolores,"Dolores St &, 19th St, San Francisco, CA 94114",Dolores,2,
+
+# Groceries
+
+# GTFO
+OAK,"1 Airport Dr, Oakland, CA 94621",Airport,2,
+SFO,"San Francisco, CA 94128",Airport,2,
